@@ -74,7 +74,7 @@
       font-size: 60px;
       position: absolute;
       margin-top: 180px;
-      left: 370px;
+      left: 400px;
     }
   </style>
 </head>
@@ -126,7 +126,7 @@
     <el-row>
       <canvas width="400" height="400" class="canvas" ref="fromCanvas"></canvas>
       <i class="el-icon-right" id="convArrow"></i>
-      <canvas width="400" height="400" class="canvas" ref="distCanvas"></canvas>
+      <canvas width="400" height="400" class="canvas" ref="distCanvas" style="margin-left: 40px"></canvas>
     </el-row>
   </div>
 
@@ -199,10 +199,14 @@
         // draw filter and strided filter
         ctx.fillStyle = "rgba(200, 0, 0,0.3)";
         ctx.fillRect(Space / 2, Space / 2 - 2, conv.filterWidth * Space, conv.filterHeight * Space);
-        ctx.fillStyle = "rgba(0, 0, 200,0.3)";
-        ctx.fillRect(Space / 2 + conv.stridesX * Space, Space / 2 - 2, conv.filterWidth * Space, conv.filterHeight * Space);
-        ctx.fillStyle = "rgba(0, 200, 0,0.3)";
-        ctx.fillRect(Space / 2, Space / 2 - 2 + conv.stridesY * Space, conv.filterWidth * Space, conv.filterHeight * Space);
+        if ((conv.width + conv.stridesX) < ajw) {
+          ctx.fillStyle = "rgba(0, 0, 200,0.3)";
+          ctx.fillRect(Space / 2 + conv.stridesX * Space, Space / 2 - 2, conv.filterWidth * Space, conv.filterHeight * Space);
+        }
+        if ((conv.width + conv.stridesY) < ajh) {
+          ctx.fillStyle = "rgba(0, 200, 0,0.3)";
+          ctx.fillRect(Space / 2, Space / 2 - 2 + conv.stridesY * Space, conv.filterWidth * Space, conv.filterHeight * Space);
+        }
         ctx.restore();
 
         return map;
@@ -237,7 +241,7 @@
         const conv = this.conv;
         ctx.clearRect(0, 0, Cw, Ch);
         // drwa elems
-        const scale = Math.min(Cw / (ow * 24), Ch / (oh * 24))
+        const scale = Math.min.apply(null, [Cw / (ow * 24), Ch / (oh * 24), 12]);
         ctx.scale(scale, scale)  // 400x400のキャンバスに合わせる
         for (let y = 0; y < oh; y++) {
           for (let x = 0; x < ow; x++) {
@@ -247,10 +251,15 @@
         // draw filter and strided filter
         ctx.fillStyle = "rgba(200, 0, 0,0.3)";
         ctx.fillRect(Space / 2, Space / 2 - 4, Space, Space);
-        ctx.fillStyle = "rgba(0, 0, 200,0.3)";
-        ctx.fillRect(Space * 1.5, Space / 2 - 4, Space, Space);
-        ctx.fillStyle = "rgba(0, 200, 0,0.3)";
-        ctx.fillRect(Space / 2, Space * 1.5 - 4, Space, Space);
+        if (ow >= 2) {
+          ctx.fillStyle = "rgba(0, 0, 200,0.3)";
+          ctx.fillRect(Space * 1.5, Space / 2 - 4, Space, Space);
+        }
+        if (oh >= 2) {
+          ctx.fillStyle = "rgba(0, 200, 0,0.3)";
+          ctx.fillRect(Space / 2, Space * 1.5 - 4, Space, Space);
+        }
+
 
         ctx.restore();
       }
