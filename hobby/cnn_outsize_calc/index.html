@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <script src="./vue.js"></script>
+  <script src="./lib/element.js"></script>
+  <link rel="stylesheet" href="./style/theme-chalk/index.css">
+
+  <style>
+    html,body{
+      font-family: "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","微软雅黑",Arial,sans-serif;
+      font-weight:400;
+      color:#444;
+      padding:16px;
+    }
+
+    #calc_conv_size label {
+      width: 120px;
+      display:inline-block;
+    }
+
+
+    .el-row {
+      margin-bottom: 20px;
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+    .el-col {
+      border-radius: 4px;
+    }
+    .bg-purple-dark {
+      background: #99a9bf;
+    }
+    .bg-purple {
+      background: #d3dce6;
+    }
+    .bg-purple-light {
+      background: #e5e9f2;
+    }
+    .grid-content {
+      border-radius: 4px;
+      min-height: 36px;
+      margin-bottom: 32px;
+    }
+    .row-bg {
+      padding: 10px 0;
+      background-color: #f9fafc;
+    }
+    .wrongValue{
+      color:#F56C6C;
+    }
+    #conv_resize_result{
+      font-size:20px;
+    }
+    #conv_resize_result label{
+      width:160px;
+      display:inline-block;
+    }
+    #convArrow{
+      font-size:60px;
+      position:absolute;
+      margin-top:180px;
+      left:370px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <div id="calc_conv_size">
+      <div id="conv_resize_result">
+        <el-row>
+          <label :class="{'wrongValue': !Number.isInteger(oh)}">Output Height:</label><span>{{ oh }}</span>
+        </el-row>
+        <el-row>
+            <label :class="{'wrongValue': !Number.isInteger(ow)}">Output Width:</label><span>{{ ow }}</span>
+        </el-row>
+      </div>
+      
+      <el-row>
+          <el-col :span="6"><label>Height:</label><el-input-number v-model="conv.height" :min="1" controls-position="right"></el-input-number></el-col>
+          <el-col :span="6"><label>Width:</label><el-input-number v-model="conv.width" :min="1" controls-position="right"></el-input-number></el-col>
+      </el-row>
+      <el-row>
+        <el-col :span="6"><label>FilterHeight:</label><el-input-number v-model="conv.filterHeight" :min="1" :max="(conv.height+conv.padding*2)" controls-position="right"></el-input-number></el-col>
+        <el-col :span="6"><label>FilterWidth:</label><el-input-number v-model="conv.filterWidth" :min="1" :max="(conv.width+conv.padding*2)" controls-position="right"></el-input-number></el-col>
+      </el-row>
+    
+      <el-row>
+        <el-col :span="6"><label>StridesY:</label><el-input-number v-model="conv.stridesY" :min="1" controls-position="right"></el-col>
+        <el-col :span="6"><label>StridesX:</label><el-input-number v-model="conv.stridesX" :min="1" controls-position="right"></el-col>
+        <el-col :span="6"><label>Padding:</label><el-input-number v-model="conv.padding" :min="1" controls-position="right"></el-col>
+      </el-row>
+    </div>
+
+    <el-row>
+      <canvas width="400" height="400" class="canvas" ref="fromCanvas"></canvas>
+      <i class="el-icon-right" id="convArrow"></i>
+      <canvas width="400" height="400" class="canvas" ref="distCanvas"></canvas>
+    </el-row>
+  </div>
+
+
+</body>
+
+
+<script>
+  const app = new Vue({
+    el: '#app',
+    data: {
+      conv: {
+        height: 3,
+        width: 3,
+        filterHeight: 3,
+        filterWidth: 3,
+        padding: 2,
+        stridesX: 1,
+        stridesY: 1,
+      },
+      fcanvas: {},
+      dcanvas: {}
+    },
+    computed: {
+      ow() { return (this.conv.width + 2 * this.conv.padding - this.conv.filterWidth) / this.conv.stridesX + 1 },
+      oh() { return (this.conv.height + 2 * this.conv.padding - this.conv.filterHeight) / this.conv.stridesY + 1 },
+      hasInvalidParam() { return !Number.isInteger(this.ow) || !Number.isInteger(this.oh) }
+    },
+    mounted() {
+      this.fcanvas = this.$refs.fromCanvas.getContext("2d");
+      this.dcanvas = this.$refs.distCanvas.getContext("2d");
+      this.fcanvas.font = this.dcanvas.font ='12px Arial';
+      this.fcanvas.textAlign = this.dcanvas.textAlign ='center';
+      this.drawCanvas();
+    },
+    methods:{
+      drawCanvas(){
+        const map = this.drawFromCanvas();
+        if(this.hasInvalidParam){
+          this.clearDistCanvas();
+        }else{
+          this.drawDistCanvas(map);
+        }
+      },
+      drawFromCanvas(){
+        const getPos = (x,y) => (x-conv.padding)+(y-conv.padding)*conv.height+1;
+        const inPaddingArea = (x,y) => (x%ajw < conv.padding || (conv.width+conv.padding)<=x)
+                                    || (y%ajh < conv.padding || (conv.height+conv.padding)<=y)
+
+        ctx = this.fcanvas;
+        ctx.save();
+        const Space = 20; // 適当、ちゃんとやるならフォントサイズも計算
+        const [Cw,Ch] = [400,400]
+        const conv = this.conv;
+        const [ajw,ajh] = [(conv.width+conv.padding*2),(conv.height+conv.padding*2)];
+        const map = []; // 後でフィルタ結果を計算するため
+
+        ctx.clearRect(0, 0, Cw, Ch);
+        // draw elems
+        const scale = Math.min(Cw/(ajw*(Space+4)),Ch/(ajh*(Space+4))) // +4は適当
+        ctx.scale(scale,scale)  // 400x400のキャンバスに合わせる
+        for(let y=0; y<ajh; y++){
+          for(let x=0; x<ajw; x++){
+            const v = inPaddingArea(x,y) ? 0 : getPos(x,y); // paddingは0フィルにする
+            ctx.fillText(v,(x%ajw)*Space+Space,y*Space+Space);
+            map[y] = map[y] || [];
+            map[y][x] = v;
+          }
+        }
+        // draw filter and strided filter
+        ctx.fillStyle = "rgba(200, 0, 0,0.3)";
+        ctx.fillRect(Space/2, Space/2-2, conv.filterWidth*Space, conv.filterHeight*Space);
+        ctx.fillStyle = "rgba(0, 0, 200,0.3)";
+        ctx.fillRect(Space/2 + conv.stridesX*Space, Space/2-2, conv.filterWidth*Space, conv.filterHeight*Space);
+        ctx.fillStyle = "rgba(0, 200, 0,0.3)";
+        ctx.fillRect(Space/2, Space/2-2  + conv.stridesY*Space, conv.filterWidth*Space, conv.filterHeight*Space);
+        ctx.restore();
+
+        return map;
+      },
+      clearDistCanvas(){  // 毎回描画無駄だけどいったん無視
+        ctx = this.dcanvas;
+        ctx.clearRect(0, 0, 400, 400);
+        ctx.save();
+        ctx.font = '100px Arial';
+        ctx.textAlign = this.dcanvas.textAlign ='center';
+        ctx.fillText("？",200,200);
+        ctx.restore();
+      },
+      drawDistCanvas(map){
+        const getFilterdVal = (cx,cy,padd) => {
+          cx = cx*conv.stridesX;
+          cy = cy*conv.stridesY;
+          let sum = 0;
+          for(let y=cy; y<(cy+conv.filterHeight); y++){
+            for(let x=cx; x<(cx+conv.filterWidth); x++){
+              sum += map[y][x];
+            }
+          }
+          return sum;
+        }
+
+        ctx = this.dcanvas;
+        ctx.save();
+        const Space = 20; // 適当、ちゃんとやるならフォントサイズも計算
+        const [Cw,Ch] = [400,400]
+        const [ow,oh] = [this.ow,this.oh];
+        const conv = this.conv;
+        ctx.clearRect(0, 0, Cw, Ch);
+        // drwa elems
+        const scale = Math.min(Cw/(ow*24),Ch/(oh*24))
+        ctx.scale(scale,scale)  // 400x400のキャンバスに合わせる
+        for(let y=0; y<oh; y++){
+          for(let x=0; x<ow; x++){
+              ctx.fillText(getFilterdVal(x,y),(x%ow)*Space+Space,y*Space+Space);
+            }
+        }
+        // draw filter and strided filter
+        ctx.fillStyle = "rgba(200, 0, 0,0.3)";
+        ctx.fillRect(Space/2, Space/2-4, Space, Space);
+        ctx.fillStyle = "rgba(0, 0, 200,0.3)";
+        ctx.fillRect(Space*1.5, Space/2-4, Space, Space);
+        ctx.fillStyle = "rgba(0, 200, 0,0.3)";
+        ctx.fillRect(Space/2, Space*1.5-4 , Space, Space);
+
+        ctx.restore();
+      }
+    },
+    watch:{
+      conv:{
+        handler: function(nv,ov){
+          this.drawCanvas();
+        },deep:true 
+      }
+    }
+  })
+
+
+</script>
+
+</html>
