@@ -118,7 +118,7 @@
           <el-input-number v-model="conv.stridesX" :min="1" controls-position="right">
         </el-col>
         <el-col :span="6"><label>Padding:</label>
-          <el-input-number v-model="conv.padding" :min="0" controls-position="right">
+          <el-input-number v-model="conv.padding" :min="0" controls-position="right" @change="changePadd()">
         </el-col>
       </el-row>
     </div>
@@ -128,6 +128,7 @@
       <i class="el-icon-right" id="convArrow"></i>
       <canvas width="400" height="400" class="canvas" ref="distCanvas" style="margin-left: 40px"></canvas>
     </el-row>
+    ※paddingはzero-fill、フィルターはsumにしてます。
   </div>
 
 
@@ -163,6 +164,10 @@
       this.drawCanvas();
     },
     methods: {
+      changePadd() {
+        this.conv.filterWidth = Math.min((this.conv.width + this.conv.padding * 2), this.conv.filterWidth);
+        this.conv.filterHeight = Math.min((this.conv.height + this.conv.padding * 2), this.conv.filterHeight);
+      },
       drawCanvas() {
         const map = this.drawFromCanvas();
         if (this.hasInvalidParam) {
@@ -199,11 +204,11 @@
         // draw filter and strided filter
         ctx.fillStyle = "rgba(200, 0, 0,0.3)";
         ctx.fillRect(Space / 2, Space / 2 - 2, conv.filterWidth * Space, conv.filterHeight * Space);
-        if ((conv.width + conv.stridesX) < ajw) {
+        if ((conv.filterWidth + conv.stridesX) <= ajw) {
           ctx.fillStyle = "rgba(0, 0, 200,0.3)";
           ctx.fillRect(Space / 2 + conv.stridesX * Space, Space / 2 - 2, conv.filterWidth * Space, conv.filterHeight * Space);
         }
-        if ((conv.width + conv.stridesY) < ajh) {
+        if ((conv.filterHeight + conv.stridesY) <= ajh) {
           ctx.fillStyle = "rgba(0, 200, 0,0.3)";
           ctx.fillRect(Space / 2, Space / 2 - 2 + conv.stridesY * Space, conv.filterWidth * Space, conv.filterHeight * Space);
         }
