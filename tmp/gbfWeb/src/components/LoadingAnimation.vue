@@ -8,7 +8,7 @@
 export default {};
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 @import '../../node_modules/bulma/bulma.sass';
 div.loading div {
   position: relative;

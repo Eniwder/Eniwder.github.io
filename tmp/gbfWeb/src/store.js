@@ -42,11 +42,46 @@ const testTask = [
   }
 ];
 
+const recsTest = [
+  {
+    id: 1,
+    rescueId: '384A38B',
+    name: '@えにたむ',
+    start: Date.now(),
+    title: 'アルバハH　180↑',
+    content: '条件あるよ'
+  },
+  {
+    id: 2,
+    rescueId: '0F9457X',
+    name: '@eniel',
+    start: Date.now(),
+    title: 'ルシH',
+    content: '誰でも'
+  }
+];
+
+const randomRec = nextId => ({
+  id: nextId,
+  rescueId: _.take(_.shuffle('123456789ABCDEFGHJKLMNPQRSTUVWXYZ'.split('')), 7).join(''),
+  name: '@' + _.take(_.shuffle('123456789ABCDEFGHJKLMNPQRSTUVWXYZ'.split('')), parseInt(Math.random() * 3 + 4)).join(''),
+  start: Date.now() + Math.random() * 5 * Hour,
+  title: 'テストデータ',
+  content: 'ほそくじこう'
+})
+
 axios.get = async url => {
   const api = _.last(url.split('/'));
-  if (api === 'tasks') {
+  if (api.startsWith('tasks')) {
     return new Promise((rs, rj) => {
       setTimeout(() => rs(testTask), Math.random() * 2000)
+    });
+  } else if (api.startsWith('recs')) {
+    const nid = parseInt(api.split('=')[1]);
+    const ret = nid <= 0
+      ? recsTest : _.range(nid, nid + parseInt(Math.random() * 3)).map(nid => randomRec(nid))
+    return new Promise((rs, rj) => {
+      setTimeout(() => rs(ret), Math.random() * 2000)
     });
   } else {
     console.log('api is not found');
@@ -54,33 +89,40 @@ axios.get = async url => {
 }
 
 /////////////////////////////////////////
-
+const MaxRecs = 100
 export default new Vuex.Store({
   state: {
     user: '',
     tasks: [],
-    reqruitment: []
+    recs: []
   },
   getters: {
     tasks(state) {
       return state.tasks;
     },
-    reqruitment(state) {
-      return state.reqruitment;
+    recs(state) {
+      return state.recs;
     },
   },
   mutations: {
     setTasks(state, payload) {
       state.tasks = payload.tasks;
     },
-    setReqruitment(state, payload) {
-      state.reqruitment = payload.reqruitment;
+    setRecs(state, payload) {
+      state.recs.splice(0, 0, ...payload.recs);
+      if (state.recs.length > MaxRecs) {
+        state.recs.length = MaxRecs
+      }
     },
   },
   actions: {
     async updateTasks({ commit }, context) {
       const tasks = await axios.get(`${Api}/tasks`)
       commit('setTasks', { tasks });
+    },
+    async updateRecs({ commit }, context) {
+      const recs = await axios.get(`${Api}/recs?nid=${context.maxId + 1}`)
+      commit('setRecs', { recs });
     },
   },
 });

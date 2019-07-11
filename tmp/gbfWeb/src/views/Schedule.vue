@@ -2,10 +2,19 @@
   <div>
     <div class="columns is-multiline is-mobile">
       <div class="column">
-        <button class="button" @click="resetPosition()">Now!</button>
+        <a class="button" @click="resetPosition()">
+          <span class="icon">
+            <i class="fas fa-clock"></i>
+          </span>
+          <span>Now!</span>
+        </a>
       </div>
       <div class="column">
-        <label class="sliderLabel">Zoom</label>
+        <label class="sliderLabel">
+          <span class="icon">
+            <i class="fas fa-search-plus"></i>
+          </span>Zoom
+        </label>
         <input
           class="slider"
           v-model="ganttOptions.times.timeZoom"
@@ -99,7 +108,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .config {
   margin-bottom: 1rem;
 }

@@ -17,6 +17,7 @@
 </template>
 
 <script>
+import 'animate.css/animate.min.css';
 import 'bulma/css/bulma.css';
 import 'bulma-slider/dist/css/bulma-slider.min.css';
 export default {

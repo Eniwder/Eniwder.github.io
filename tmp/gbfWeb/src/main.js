@@ -5,8 +5,10 @@ import router from './router.js'
 import store from './store.js'
 
 import LoadingAnimation from './components/LoadingAnimation.vue'
+import Clipboard from 'v-clipboard';
 
-Vue.use(Vuex)
+Vue.use(Vuex);
+Vue.use(Clipboard);
 
 Vue.component('loading-animation', LoadingAnimation)
 
