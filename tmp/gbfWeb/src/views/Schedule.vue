@@ -1,10 +1,10 @@
 <template>
   <div>
-    <div class="config">
-      <span>
+    <div class="columns is-multiline is-mobile">
+      <div class="column">
         <button class="button" @click="resetPosition()">Now!</button>
-      </span>
-      <span>
+      </div>
+      <div class="column">
         <label class="sliderLabel">Zoom</label>
         <input
           class="slider"
@@ -14,7 +14,7 @@
           max="22"
           type="range"
         />
-      </span>
+      </div>
     </div>
     <transition name="gantt">
       <loading-animation v-if="this.tasks.length===0"></loading-animation>
