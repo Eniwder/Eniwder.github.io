@@ -39,4 +39,7 @@ export default {
   border-bottom-color: $tabs-link-active-border-bottom-color !important;
   color: $tabs-link-active-color !important;
 }
+.section {
+  padding: 1rem 1.5rem !important;
+}
 </style>
