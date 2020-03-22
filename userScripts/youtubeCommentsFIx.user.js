@@ -66,13 +66,16 @@ function helper(elem, func) {
 
 // オマケでコメント追加読み込みの自動化
 function autoLoadComments() {
-  let bestm = 0;
+  let oldTop = 0;
   document.getElementById('comments').addEventListener('scroll', e => {
     if (e.target.scrollTop > e.target.scrollTopMax - 100) {
-      if (bestm != e.target.scrollTopMax) {
-        window.eval(`document.querySelector('yt-visibility-monitor').dirty_ = true;`);
-        bestm = e.target.scrollTopMax;
-        window.eval(`document.querySelector('yt-visibility-monitor').refreshVisibility_.bind(document.querySelector('yt-visibility-monitor'))();`);
+      if (oldTop != e.target.scrollTopMax) {
+        oldTop = e.target.scrollTopMax;
+        window.eval(`
+var tmp = document.querySelector('yt-visibility-monitor');        
+tmp.dirty_ = true;
+tmp.refreshVisibility_.bind(tmp)();
+        `);
       }
     }
   });
