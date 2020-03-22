@@ -56,9 +56,10 @@ function helper(elem, func) {
   func();
 }
 
-
-helper("_yt_player.Ud", setPlayerSize);
-helper("document.getElementById('comments')", autoLoadComments);
+setTimeout(() => {
+  helper("_yt_player.Ud", setPlayerSize);
+  helper("document.getElementById('comments')", autoLoadComments);
+}, 100)
 
 // オマケでコメント追加読み込みの自動化
 function autoLoadComments() {
