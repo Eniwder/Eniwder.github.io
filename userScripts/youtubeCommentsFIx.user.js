@@ -1,36 +1,47 @@
 // ==UserScript==
 // @name     YoutubeCommentStylusFix
-// @version  1
+// @version  1.1
 // @author https://twitter.com/Eniel120
 // @grant    none
 // @match    https://www.youtube.com/*
 // ==/UserScript==
 function setPlayerSize() {
+  const base = Array.from(window.eval(`document.getElementsByTagName('script')`)).filter(_ => _.src.includes('base'))[0].src;
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', base);
+  xhr.send();
+  xhr.onload = function () {
+    const trg = xhr.responseText.match(/\.([a-zA-Z]+)\(window.outerWidth,window.outerHeight\)/)[1];
+    setPlayerSizeHelper(trg);
+  }
+}
+
+function setPlayerSizeHelper(trg) {
   window.eval(`
-_yt_player.Ud = function(a,b){  
+_yt_player.${trg} = function(a,b){  
   this.width = Math.min(a,722);
   this.height = Math.min(b,408); 
 }
-_yt_player.Ud.prototype.clone = function() {
-  return new _yt_player.Ud(this.width,this.height)
+_yt_player.${trg}.prototype.clone = function() {
+  return new _yt_player.Vd(this.width,this.height)
 }
-_yt_player.Ud.prototype.aspectRatio = function() {
+_yt_player.${trg}.prototype.aspectRatio = function() {
   return this.width / this.height
 }
-_yt_player.Ud.prototype.isEmpty = function() {
+_yt_player.${trg}.prototype.isEmpty = function() {
   return !(this.width * this.height)
 }
-_yt_player.Ud.prototype.ceil = function() {
+_yt_player.${trg}.prototype.ceil = function() {
   this.width = Math.ceil(this.width);
   this.height = Math.ceil(this.height);
   return this
 }
-_yt_player.Ud.prototype.floor = function() {
+_yt_player.${trg}.prototype.floor = function() {
   this.width = Math.floor(this.width);
   this.height = Math.floor(this.height);
   return this
 }
-_yt_player.Ud.prototype.round = function() {
+_yt_player.${trg}.prototype.round = function() {
   this.width = Math.round(this.width);
   this.height = Math.round(this.height);
   return this
@@ -52,7 +63,7 @@ exec();
 
 function exec() {
   if (document.URL.includes('watch')) {
-    helper("_yt_player.Ud", setPlayerSize);
+    helper("_yt_player.Vd", setPlayerSize);
     helper("document.getElementById('comments')", autoLoadComments);
   }
 }
