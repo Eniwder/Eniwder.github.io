@@ -5,13 +5,15 @@
 // @grant    none
 // @match    https://www.youtube.com/*
 // ==/UserScript==
+let trg;
 function setPlayerSize() {
+  if (trg) return setPlayerSizeHelper(trg);
   const base = Array.from(window.eval(`document.getElementsByTagName('script')`)).filter(_ => _.src.includes('base'))[0].src;
   var xhr = new XMLHttpRequest();
   xhr.open('GET', base);
   xhr.send();
   xhr.onload = function () {
-    const trg = xhr.responseText.match(/\.([a-zA-Z]+)\(window.outerWidth,window.outerHeight\)/)[1];
+    trg = xhr.responseText.match(/\.([a-zA-Z]+)\(window.outerWidth,window.outerHeight\)/)[1];
     setPlayerSizeHelper(trg);
   }
 }
