@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name     YoutubeCommentStylusFix
-// @version  1.1
+// @version  1.12
 // @author https://twitter.com/Eniel120
 // @grant    none
 // @match    https://www.youtube.com/*
@@ -25,7 +25,7 @@ _yt_player.${trg} = function(a,b){
   this.height = Math.min(b,408); 
 }
 _yt_player.${trg}.prototype.clone = function() {
-  return new _yt_player.Vd(this.width,this.height)
+  return new _yt_player.${trg}(this.width,this.height)
 }
 _yt_player.${trg}.prototype.aspectRatio = function() {
   return this.width / this.height
@@ -65,7 +65,7 @@ exec();
 
 function exec() {
   if (document.URL.includes('watch')) {
-    helper("_yt_player.Vd", setPlayerSize);
+    helper("_yt_player", setPlayerSize);
     helper("document.getElementById('comments')", autoLoadComments);
   }
 }
