@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name     YoutubeCommentStylusFix
-// @version  1.12
+// @version  1.13
 // @author https://twitter.com/Eniel120
 // @grant    none
 // @match    https://www.youtube.com/*
@@ -13,7 +13,7 @@ function setPlayerSize() {
   xhr.open('GET', base);
   xhr.send();
   xhr.onload = function () {
-    trg = xhr.responseText.match(/\.([a-zA-Z]+)\(window.outerWidth,window.outerHeight\)/)[1];
+    trg = xhr.responseText.match(/\.([_$a-zA-Z]+)\(window.outerWidth,window.outerHeight\)/)[1];
     setPlayerSizeHelper(trg);
   }
 }
