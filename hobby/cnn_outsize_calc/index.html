@@ -128,7 +128,15 @@
       <i class="el-icon-right" id="convArrow"></i>
       <canvas width="400" height="400" class="canvas" ref="distCanvas" style="margin-left: 40px"></canvas>
     </el-row>
-    ※paddingはzero-fill、フィルターはsumにしてます。
+    <el-row>
+      ※paddingはzero-fillにしてます。
+    </el-row>
+    <el-row>
+      <el-col :span="6"><label>Pooling Method:</label>
+        <el-radio v-model="conv.pooling" label="max">Max</el-radio>
+        <el-radio v-model="conv.pooling" label="sum">Sum</el-radio>
+      </el-col>
+    </el-row>
   </div>
 
 
@@ -144,9 +152,10 @@
         width: 3,
         filterHeight: 3,
         filterWidth: 3,
-        padding: 2,
+        padding: 1,
         stridesX: 1,
         stridesY: 1,
+        pooling: 'max'
       },
       fcanvas: {},
       dcanvas: {}
@@ -226,7 +235,7 @@
         ctx.restore();
       },
       drawDistCanvas(map) {
-        const getFilterdVal = (cx, cy, padd) => {
+        const sumPooling = (cx, cy, padd) => {
           cx = cx * conv.stridesX;
           cy = cy * conv.stridesY;
           let sum = 0;
@@ -236,6 +245,18 @@
             }
           }
           return sum;
+        }
+
+        const maxPooling = (cx, cy, padd) => {
+          cx = cx * conv.stridesX;
+          cy = cy * conv.stridesY;
+          let max = -1;
+          for (let y = cy; y < (cy + conv.filterHeight); y++) {
+            for (let x = cx; x < (cx + conv.filterWidth); x++) {
+              max = Math.max(max, map[y][x]);
+            }
+          }
+          return max;
         }
 
         ctx = this.dcanvas;
@@ -248,9 +269,10 @@
         // drwa elems
         const scale = Math.min.apply(null, [Cw / (ow * 24), Ch / (oh * 24), 12]);
         ctx.scale(scale, scale)  // 400x400のキャンバスに合わせる
+        poolingMethod = conv.pooling == 'max' ? maxPooling : sumPooling;
         for (let y = 0; y < oh; y++) {
           for (let x = 0; x < ow; x++) {
-            ctx.fillText(getFilterdVal(x, y), (x % ow) * Space + Space, y * Space + Space);
+            ctx.fillText(poolingMethod(x, y), (x % ow) * Space + Space, y * Space + Space);
           }
         }
         // draw filter and strided filter
